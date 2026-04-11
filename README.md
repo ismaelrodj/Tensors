@@ -20,6 +20,7 @@ At its current stage, the project includes:
 - a general `Tensor` class;
 - specialized `Vector` and `Covector` classes;
 - basic validation for tensor types and component shapes;
+- evaluation of a covector on a vector;
 - a modular package structure;
 - and an initial test suite.
 
@@ -74,7 +75,12 @@ T = Tensor.from_data([[1, 2], [3, 4]], tensor_type=(1, 1))
 print(v)
 print(alpha)
 print(T)
+print(alpha(v))
 ```
+
+In this example, `alpha(v)` is displayed as a real number whenever its
+imaginary part is zero, even though the library computes internally with
+complex scalars.
 
 ## Design Principles
 
@@ -92,6 +98,25 @@ This project follows a few guiding principles:
 - **Educational value**  
   The library should help students understand tensor algebra, not just manipulate arrays.
 
+## Scalar Convention
+
+The library uses a single scalar representation internally:
+
+- all tensor components are stored as `complex128`;
+- all algebraic operations are carried out over complex scalars.
+
+At the public interface level, however, values are shown as real whenever
+possible:
+
+- real inputs such as `1` or `2.5` are accepted naturally and converted
+  internally to complex form;
+- scalar outputs are returned as `float` when their imaginary part is zero;
+- tensor representations display entries as real numbers whenever the
+  imaginary part vanishes.
+
+This keeps the implementation algebraically uniform while preserving a clean
+and intuitive interface for real-valued examples.
+
 ## Workflow Organization
 
 - `src/tensors/` contains the modular implementation of the library.
@@ -104,7 +129,6 @@ Likely next steps include:
 
 - scalar multiplication;
 - addition of compatible tensors;
-- evaluation of a covector on a vector;
 - tensor products;
 - and more precise algebraic operations.
 

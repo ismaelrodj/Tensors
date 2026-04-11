@@ -35,6 +35,10 @@ class Tensor:
 
     @staticmethod
     def _format_scalar(value: complex) -> float | complex:
+        """
+        Public outputs are shown as real whenever the imaginary part vanishes,
+        even though internal storage always uses complex scalars.
+        """
         if np.isclose(value.imag, 0.0):
             return float(value.real)
         return value
