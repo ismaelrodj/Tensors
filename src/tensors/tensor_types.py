@@ -7,4 +7,4 @@ import numpy.typing as npt
 
 TensorType: TypeAlias = tuple[int, int]
 Shape: TypeAlias = tuple[int, ...]
-FloatArray: TypeAlias = npt.NDArray[np.float64]
+ComplexArray: TypeAlias = npt.NDArray[np.complex128]

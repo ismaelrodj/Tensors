@@ -4,10 +4,11 @@ from typing import Any
 
 import numpy as np
 
-from .tensor_types import FloatArray, TensorType
+from .tensor_types import ComplexArray, TensorType
 
-def to_float_array(data: Any) -> FloatArray:
-    return np.asarray(data, dtype=np.float64)
+
+def to_complex_array(data: Any) -> ComplexArray:
+    return np.asarray(data, dtype=np.complex128)
 
 
 def validate_tensor_type(tensor_type: TensorType) -> None:
@@ -27,7 +28,7 @@ def validate_tensor_type(tensor_type: TensorType) -> None:
 
 
 def validate_rank_against_type(
-    components: FloatArray,
+    components: ComplexArray,
     tensor_type: TensorType,
 ) -> None:
     expected_rank = sum(tensor_type)
@@ -40,14 +41,14 @@ def validate_rank_against_type(
         )
 
 
-def validate_vector_array(components: FloatArray) -> None:
+def validate_vector_array(components: ComplexArray) -> None:
     if components.ndim != 1:
         raise ValueError(
             f"Vector components must be a 1-dimensional array, got ndim={components.ndim}."
         )
 
 
-def validate_covector_array(components: FloatArray) -> None:
+def validate_covector_array(components: ComplexArray) -> None:
     if components.ndim != 1:
         raise ValueError(
             f"Covector components must be a 1-dimensional array, got ndim={components.ndim}."
