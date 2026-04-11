@@ -47,3 +47,15 @@ def test_vector_supports_complex_inputs_and_scalars() -> None:
     assert vector[0] == 1 + 0j
     assert vector[1] == 2 + 3j
     assert scaled[1] == 5 + 1j
+
+
+def test_vector_addition_preserves_subclass() -> None:
+    left = Vector.from_data([1, 2, 3])
+    right = Vector.from_data([4, 5, 6])
+
+    result = left + right
+
+    assert isinstance(result, Vector)
+    assert result.tensor_type == (1, 0)
+    assert result[0] == 5 + 0j
+    assert result[2] == 9 + 0j

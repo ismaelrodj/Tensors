@@ -67,6 +67,51 @@ def test_tensor_supports_complex_scalar_multiplication() -> None:
     assert scaled[0, 1] == 2 + 4j
 
 
+def test_tensor_addition_preserves_type_and_values() -> None:
+    left = Tensor.from_data([[1, 2], [3, 4]], tensor_type=(1, 1))
+    right = Tensor.from_data([[10, 20], [30, 40]], tensor_type=(1, 1))
+
+    result = left + right
+
+    assert isinstance(result, Tensor)
+    assert result.tensor_type == (1, 1)
+    assert result.shape == (2, 2)
+    assert result[0, 0] == 11 + 0j
+    assert result[1, 1] == 44 + 0j
+
+
+def test_tensor_addition_rejects_different_tensor_types() -> None:
+    left = Tensor.from_data([[1, 2], [3, 4]], tensor_type=(1, 1))
+    right = Tensor.from_data([[10, 20], [30, 40]], tensor_type=(2, 0))
+
+    try:
+        left + right
+        assert False, "Expected ValueError"
+    except ValueError:
+        pass
+
+
+def test_tensor_addition_rejects_different_shapes() -> None:
+    left = Tensor.from_data(
+        [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+        tensor_type=(2, 1),
+    )
+    right = Tensor.from_data(
+        [
+            [[1, 2], [3, 4]],
+            [[5, 6], [7, 8]],
+            [[9, 10], [11, 12]],
+        ],
+        tensor_type=(2, 1),
+    )
+
+    try:
+        left + right
+        assert False, "Expected ValueError"
+    except ValueError:
+        pass
+
+
 def test_tensor_repr_hides_zero_imaginary_parts() -> None:
     tensor = Tensor.from_data([[1, 2 + 0j], [3, 4 + 5j]], tensor_type=(1, 1))
 

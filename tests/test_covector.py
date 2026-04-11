@@ -45,3 +45,15 @@ def test_covector_supports_complex_inputs_and_repr() -> None:
     assert covector[0] == 4 + 0j
     assert covector[1] == 5j
     assert "4.0" in repr(covector)
+
+
+def test_covector_addition_preserves_subclass() -> None:
+    left = Covector.from_data([4, 5, 6])
+    right = Covector.from_data([1, 2, 3])
+
+    result = left + right
+
+    assert isinstance(result, Covector)
+    assert result.tensor_type == (0, 1)
+    assert result[0] == 5 + 0j
+    assert result[2] == 9 + 0j

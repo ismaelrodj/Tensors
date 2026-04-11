@@ -64,6 +64,15 @@ class Tensor:
     def __getitem__(self, key: Any) -> Any:
         return self._components[key]
 
+    def __add__(self, other: object) -> Self | NotImplementedType:
+        if not isinstance(other, Tensor):
+            return NotImplemented
+        if self.tensor_type != other.tensor_type:
+            raise ValueError("Cannot add tensors with different tensor types.")
+        if self.shape != other.shape:
+            raise ValueError("Cannot add tensors with different shapes.")
+        return self._with_components(self.components + other.components)
+
     def __mul__(self, scalar: object) -> Self | NotImplementedType:
         if not isinstance(scalar, int | float | complex):
             return NotImplemented
