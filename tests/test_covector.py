@@ -1,4 +1,4 @@
-from tensors import Covector
+from tensors import Covector, Vector
 
 
 def test_covector_from_data_creates_covector_correctly() -> None:
@@ -57,3 +57,43 @@ def test_covector_addition_preserves_subclass() -> None:
     assert result.tensor_type == (0, 1)
     assert result[0] == 5 + 0j
     assert result[2] == 9 + 0j
+
+
+def test_covector_evaluate_vector_returns_scalar() -> None:
+    covector = Covector.from_data([4, 5, 6])
+    vector = Vector.from_data([1, 2, 3])
+
+    result = covector.evaluate(vector)
+
+    assert result == 32.0
+    assert isinstance(result, float)
+
+
+def test_covector_call_evaluates_vector() -> None:
+    covector = Covector.from_data([1 + 1j, 2])
+    vector = Vector.from_data([3, 4j])
+
+    result = covector(vector)
+
+    assert result == 3 + 11j
+
+
+def test_covector_evaluate_preserves_complex_output_when_needed() -> None:
+    covector = Covector.from_data([1j, 0])
+    vector = Vector.from_data([2, 0])
+
+    result = covector.evaluate(vector)
+
+    assert result == 2j
+    assert isinstance(result, complex)
+
+
+def test_covector_evaluation_rejects_different_shapes() -> None:
+    covector = Covector.from_data([1, 2, 3])
+    vector = Vector.from_data([4, 5])
+
+    try:
+        covector.evaluate(vector)
+        assert False, "Expected ValueError"
+    except ValueError:
+        pass
