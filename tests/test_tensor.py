@@ -173,6 +173,28 @@ def test_tensor_product_function_matches_method_result() -> None:
     assert (via_function.components == via_method.components).all()
 
 
+def test_tensor_matmul_matches_tensor_product() -> None:
+    left = Tensor.from_data([[1, 2], [3, 4]], tensor_type=(1, 1))
+    right = Tensor.from_data([5, 6], tensor_type=(1, 0))
+
+    via_operator = left @ right
+    via_method = left.tensor_product(right)
+
+    assert via_method is not NotImplemented
+    assert via_operator is not NotImplemented
+    assert via_operator.tensor_type == (2, 1)
+    assert via_operator.shape == (2, 2, 2)
+    assert (via_operator.components == via_method.components).all()
+
+
+def test_tensor_matmul_returns_not_implemented_for_non_tensor() -> None:
+    tensor = Tensor.from_data([1, 2], tensor_type=(1, 0))
+
+    result = tensor.__matmul__("invalid")
+
+    assert result is NotImplemented
+
+
 def test_tensor_sum_function_matches_operator_result() -> None:
     left = Tensor.from_data([[1, 2], [3, 4]], tensor_type=(1, 1))
     right = Tensor.from_data([[10, 20], [30, 40]], tensor_type=(1, 1))
@@ -224,3 +246,100 @@ def test_display_matrix_hides_zero_imaginary_parts() -> None:
     assert matrix.dtype.kind in {"f", "c"}
     assert matrix[0, 0] == 1.0
     assert matrix[3, 1] == 8.0
+
+
+def test_display_slice_hides_zero_imaginary_parts_for_array_slice() -> None:
+    tensor = Tensor.from_data(
+        [[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+        tensor_type=(2, 1),
+    )
+
+    slice_view = tensor.display_slice(0)
+
+    assert slice_view.shape == (2, 2)
+    assert slice_view.dtype.kind in {"f", "c"}
+    assert slice_view[0, 0] == 1.0
+    assert slice_view[1, 1] == 4.0
+
+
+def test_display_slice_formats_scalar_output() -> None:
+    tensor = Tensor.from_data([[1, 2], [3, 4 + 5j]], tensor_type=(1, 1))
+
+    assert tensor.display_slice((0, 1)) == 2.0
+    assert tensor.display_slice((1, 1)) == 4 + 5j
+
+
+def test_tensor_apply_matrix_on_vector_returns_vector() -> None:
+    from tensors import Vector
+
+    tensor = Tensor.from_data([[1, 3], [5, 1]], tensor_type=(1, 1))
+    vector = Vector.from_data([2, 4])
+
+    result = tensor.apply(vector)
+
+    assert isinstance(result, Vector)
+    assert result.tensor_type == (1, 0)
+    assert result.shape == (2,)
+    assert result[0] == 14 + 0j
+    assert result[1] == 14 + 0j
+
+
+def test_tensor_apply_covector_on_vector_returns_scalar() -> None:
+    from tensors import Covector, Vector
+
+    covector = Covector.from_data([2, 3])
+    vector = Vector.from_data([5, 7])
+
+    result = covector.apply(vector)
+
+    assert result == 31.0
+
+
+def test_tensor_apply_tensor_on_matrix_returns_tensor() -> None:
+    tensor = Tensor.from_data([[1, 0], [0, 1]], tensor_type=(1, 1))
+    matrix = Tensor.from_data([[2, 3], [4, 5]], tensor_type=(1, 1))
+
+    result = tensor.apply(matrix)
+
+    assert isinstance(result, Tensor)
+    assert result.tensor_type == (1, 1)
+    assert result.shape == (2, 2)
+    assert result[0, 0] == 2 + 0j
+    assert result[1, 1] == 5 + 0j
+
+
+def test_tensor_apply_rejects_tensor_without_covariant_index() -> None:
+    from tensors import Vector
+
+    vector = Vector.from_data([1, 2])
+
+    try:
+        vector.apply(vector)
+        assert False, "Expected ValueError"
+    except ValueError:
+        pass
+
+
+def test_tensor_apply_rejects_argument_without_contravariant_index() -> None:
+    from tensors import Covector
+
+    covector = Covector.from_data([1, 2])
+
+    try:
+        covector.apply(covector)
+        assert False, "Expected ValueError"
+    except ValueError:
+        pass
+
+
+def test_tensor_apply_rejects_incompatible_shapes() -> None:
+    from tensors import Vector
+
+    tensor = Tensor.from_data([[1, 2], [3, 4]], tensor_type=(1, 1))
+    vector = Vector.from_data([1, 2, 3])
+
+    try:
+        tensor.apply(vector)
+        assert False, "Expected ValueError"
+    except ValueError:
+        pass

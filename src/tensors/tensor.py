@@ -97,6 +97,53 @@ class Tensor:
         """
         return np.real_if_close(self.as_matrix(row_axes=row_axes, col_axes=col_axes))
 
+    def display_slice(self, key: Any) -> Any:
+        """
+        Return a component slice prepared for display, showing real values
+        whenever the imaginary part is numerically zero.
+        """
+        result = self[key]
+        if isinstance(result, np.ndarray):
+            return np.real_if_close(result)
+        return self._format_scalar(complex(result))
+
+    def apply(self, other: object) -> Any:
+        """
+        Contract the last covariant index of this tensor with the first
+        contravariant index of another tensor.
+        """
+        if not isinstance(other, Tensor):
+            return NotImplemented
+        if self.tensor_type[1] == 0:
+            raise ValueError("Cannot apply a tensor with no covariant indices.")
+        if other.tensor_type[0] == 0:
+            raise ValueError(
+                "Cannot apply a tensor to an argument with no contravariant indices."
+            )
+        if self.shape[-1] != other.shape[0]:
+            raise ValueError(
+                "Cannot contract tensors whose matching index dimensions differ."
+            )
+
+        result_components = np.tensordot(self.components, other.components, axes=([-1], [0]))
+        result_type = (
+            self.tensor_type[0] + other.tensor_type[0] - 1,
+            self.tensor_type[1] + other.tensor_type[1] - 1,
+        )
+
+        if result_components.ndim == 0:
+            return self._format_scalar(complex(result_components.item()))
+
+        if result_type == (1, 0):
+            from .vector import Vector
+
+            return Vector(result_components)
+        if result_type == (0, 1):
+            from .covector import Covector
+
+            return Covector(result_components)
+        return Tensor(result_components, result_type)
+
     def __add__(self, other: object) -> Self | NotImplementedType:
         if not isinstance(other, Tensor):
             return NotImplemented
@@ -116,6 +163,9 @@ class Tensor:
         )
         result_components = np.tensordot(self.components, other.components, axes=0)
         return Tensor(result_components, result_type)
+
+    def __matmul__(self, other: object) -> Tensor | NotImplementedType:
+        return self.tensor_product(other)
 
     def __mul__(self, scalar: object) -> Self | NotImplementedType:
         if not isinstance(scalar, int | float | complex):
