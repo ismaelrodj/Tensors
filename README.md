@@ -21,6 +21,7 @@ At its current stage, the project includes:
 - specialized `Vector` and `Covector` classes;
 - basic validation for tensor types and component shapes;
 - evaluation of a covector on a vector;
+- tensor products between tensors;
 - a modular package structure;
 - and an initial test suite.
 
@@ -66,21 +67,34 @@ python -m pytest
 ## Basic Usage
 
 ```python
-from tensors import Tensor, Vector, Covector
+from tensors import Tensor, Vector, Covector, tensor_product, tensor_sum
 
 v = Vector.from_data([1, 2, 3])
 alpha = Covector.from_data([4, 5, 6])
 T = Tensor.from_data([[1, 2], [3, 4]], tensor_type=(1, 1))
+S = Tensor.from_data([[10, 20], [30, 40]], tensor_type=(1, 1))
 
 print(v)
 print(alpha)
 print(T)
 print(alpha(v))
+print(tensor_sum(T, S))
+print(tensor_product(v, alpha))
+print(tensor_product(T, v).as_matrix(row_axes=(0, 1), col_axes=(2,)))
+print(tensor_product(T, v).display_matrix(row_axes=(0, 1), col_axes=(2,)))
 ```
 
 In this example, `alpha(v)` is displayed as a real number whenever its
 imaginary part is zero, even though the library computes internally with
 complex scalars.
+
+Tensor operations are available both in Python's natural form, such as
+`A + B`, and as explicit public functions such as `tensor_sum(A, B)` and
+`tensor_product(A, B)`.
+
+For display and exploration, `Tensor.as_matrix(row_axes=..., col_axes=...)`
+lets you regroup the tensor indices into a 2D matrix view, and
+`Tensor.display_matrix(...)` prepares that view for cleaner notebook output.
 
 ## Design Principles
 
@@ -127,9 +141,7 @@ and intuitive interface for real-valued examples.
 
 Likely next steps include:
 
-- scalar multiplication;
-- addition of compatible tensors;
-- tensor products;
+- contractions;
 - and more precise algebraic operations.
 
 ## Project Status

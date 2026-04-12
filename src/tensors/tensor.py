@@ -68,6 +68,35 @@ class Tensor:
     def __getitem__(self, key: Any) -> Any:
         return self._components[key]
 
+    def as_matrix(
+        self, row_axes: tuple[int, ...], col_axes: tuple[int, ...]
+    ) -> ComplexArray:
+        """
+        Flatten the tensor into a 2D array by grouping selected axes into rows
+        and the remaining selected axes into columns.
+        """
+        axes = row_axes + col_axes
+        expected_axes = tuple(range(self.rank))
+
+        if tuple(sorted(axes)) != expected_axes:
+            raise ValueError(
+                "row_axes and col_axes must partition all tensor axes exactly once."
+            )
+
+        permuted = np.transpose(self.components, axes=axes)
+        row_size = int(np.prod([self.shape[axis] for axis in row_axes], dtype=int))
+        col_size = int(np.prod([self.shape[axis] for axis in col_axes], dtype=int))
+        return permuted.reshape((row_size, col_size))
+
+    def display_matrix(
+        self, row_axes: tuple[int, ...], col_axes: tuple[int, ...]
+    ) -> np.ndarray[Any, np.dtype[Any]]:
+        """
+        Return a 2D matrix view prepared for display, showing real values
+        whenever the imaginary part is numerically zero.
+        """
+        return np.real_if_close(self.as_matrix(row_axes=row_axes, col_axes=col_axes))
+
     def __add__(self, other: object) -> Self | NotImplementedType:
         if not isinstance(other, Tensor):
             return NotImplemented
@@ -76,6 +105,17 @@ class Tensor:
         if self.shape != other.shape:
             raise ValueError("Cannot add tensors with different shapes.")
         return self._with_components(self.components + other.components)
+
+    def tensor_product(self, other: object) -> Tensor | NotImplementedType:
+        if not isinstance(other, Tensor):
+            return NotImplemented
+
+        result_type = (
+            self.tensor_type[0] + other.tensor_type[0],
+            self.tensor_type[1] + other.tensor_type[1],
+        )
+        result_components = np.tensordot(self.components, other.components, axes=0)
+        return Tensor(result_components, result_type)
 
     def __mul__(self, scalar: object) -> Self | NotImplementedType:
         if not isinstance(scalar, int | float | complex):
