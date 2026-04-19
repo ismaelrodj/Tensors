@@ -67,7 +67,7 @@ python -m pytest
 ## Basic Usage
 
 ```python
-from tensors import Tensor, Vector, Covector, tensor_product, tensor_sum
+from tensors import Tensor, Vector, Covector, tensor_contract, tensor_product, tensor_sum
 
 v = Vector.from_data([1, 2, 3])
 alpha = Covector.from_data([4, 5, 6])
@@ -83,7 +83,7 @@ print(tensor_product(v, alpha))
 print(v @ alpha)
 print(tensor_product(T, v).as_matrix(row_axes=(0, 1), col_axes=(2,)))
 print(tensor_product(T, v).display_matrix(row_axes=(0, 1), col_axes=(2,)))
-print(T.apply(Vector.from_data([2, 4])))
+print(tensor_contract(T, Vector.from_data([2, 4])))
 ```
 
 In this example, `alpha(v)` is displayed as a real number whenever its
@@ -97,8 +97,10 @@ Tensor operations are available both in Python's natural form, such as
 For display and exploration, `Tensor.as_matrix(row_axes=..., col_axes=...)`
 lets you regroup the tensor indices into a 2D matrix view, and
 `Tensor.display_matrix(...)` prepares that view for cleaner notebook output.
-For contractions, `Tensor.apply(other)` contracts the last covariant index of
-the tensor with the first contravariant index of `other`.
+For contractions, `Tensor.contract(other)` and `tensor_contract(A, B)` contract
+the last covariant index of the left tensor with the first contravariant index
+of the right tensor. Evaluation remains a separate notion, represented for
+instance by `Covector.evaluate(vector)` and `alpha(vector)`.
 
 ## Design Principles
 

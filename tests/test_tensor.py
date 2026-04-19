@@ -1,4 +1,4 @@
-from tensors import Tensor, tensor_product, tensor_sum
+from tensors import Tensor, tensor_contract, tensor_product, tensor_sum
 
 
 def test_tensor_from_data_creates_tensor_correctly() -> None:
@@ -269,13 +269,13 @@ def test_display_slice_formats_scalar_output() -> None:
     assert tensor.display_slice((1, 1)) == 4 + 5j
 
 
-def test_tensor_apply_matrix_on_vector_returns_vector() -> None:
+def test_tensor_contract_matrix_on_vector_returns_vector() -> None:
     from tensors import Vector
 
     tensor = Tensor.from_data([[1, 3], [5, 1]], tensor_type=(1, 1))
     vector = Vector.from_data([2, 4])
 
-    result = tensor.apply(vector)
+    result = tensor.contract(vector)
 
     assert isinstance(result, Vector)
     assert result.tensor_type == (1, 0)
@@ -284,22 +284,22 @@ def test_tensor_apply_matrix_on_vector_returns_vector() -> None:
     assert result[1] == 14 + 0j
 
 
-def test_tensor_apply_covector_on_vector_returns_scalar() -> None:
+def test_tensor_contract_covector_on_vector_returns_scalar() -> None:
     from tensors import Covector, Vector
 
     covector = Covector.from_data([2, 3])
     vector = Vector.from_data([5, 7])
 
-    result = covector.apply(vector)
+    result = covector.contract(vector)
 
     assert result == 31.0
 
 
-def test_tensor_apply_tensor_on_matrix_returns_tensor() -> None:
+def test_tensor_contract_tensor_on_matrix_returns_tensor() -> None:
     tensor = Tensor.from_data([[1, 0], [0, 1]], tensor_type=(1, 1))
     matrix = Tensor.from_data([[2, 3], [4, 5]], tensor_type=(1, 1))
 
-    result = tensor.apply(matrix)
+    result = tensor.contract(matrix)
 
     assert isinstance(result, Tensor)
     assert result.tensor_type == (1, 1)
@@ -308,38 +308,54 @@ def test_tensor_apply_tensor_on_matrix_returns_tensor() -> None:
     assert result[1, 1] == 5 + 0j
 
 
-def test_tensor_apply_rejects_tensor_without_covariant_index() -> None:
+def test_tensor_contract_function_matches_method_result() -> None:
+    left = Tensor.from_data([[1, 3], [5, 1]], tensor_type=(1, 1))
+
+    from tensors import Vector
+
+    right = Vector.from_data([2, 4])
+
+    via_function = tensor_contract(left, right)
+    via_method = left.contract(right)
+
+    assert isinstance(via_function, type(via_method))
+    assert via_function.tensor_type == via_method.tensor_type
+    assert via_function.shape == via_method.shape
+    assert (via_function.components == via_method.components).all()
+
+
+def test_tensor_contract_rejects_tensor_without_covariant_index() -> None:
     from tensors import Vector
 
     vector = Vector.from_data([1, 2])
 
     try:
-        vector.apply(vector)
+        vector.contract(vector)
         assert False, "Expected ValueError"
     except ValueError:
         pass
 
 
-def test_tensor_apply_rejects_argument_without_contravariant_index() -> None:
+def test_tensor_contract_rejects_argument_without_contravariant_index() -> None:
     from tensors import Covector
 
     covector = Covector.from_data([1, 2])
 
     try:
-        covector.apply(covector)
+        covector.contract(covector)
         assert False, "Expected ValueError"
     except ValueError:
         pass
 
 
-def test_tensor_apply_rejects_incompatible_shapes() -> None:
+def test_tensor_contract_rejects_incompatible_shapes() -> None:
     from tensors import Vector
 
     tensor = Tensor.from_data([[1, 2], [3, 4]], tensor_type=(1, 1))
     vector = Vector.from_data([1, 2, 3])
 
     try:
-        tensor.apply(vector)
+        tensor.contract(vector)
         assert False, "Expected ValueError"
     except ValueError:
         pass

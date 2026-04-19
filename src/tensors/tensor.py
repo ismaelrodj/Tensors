@@ -107,7 +107,7 @@ class Tensor:
             return np.real_if_close(result)
         return self._format_scalar(complex(result))
 
-    def apply(self, other: object) -> Any:
+    def contract(self, other: object) -> Any:
         """
         Contract the last covariant index of this tensor with the first
         contravariant index of another tensor.
@@ -115,10 +115,10 @@ class Tensor:
         if not isinstance(other, Tensor):
             return NotImplemented
         if self.tensor_type[1] == 0:
-            raise ValueError("Cannot apply a tensor with no covariant indices.")
+            raise ValueError("Cannot contract a tensor with no covariant indices.")
         if other.tensor_type[0] == 0:
             raise ValueError(
-                "Cannot apply a tensor to an argument with no contravariant indices."
+                "Cannot contract against a tensor with no contravariant indices."
             )
         if self.shape[-1] != other.shape[0]:
             raise ValueError(
