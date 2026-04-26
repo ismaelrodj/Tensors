@@ -83,7 +83,22 @@ print(tensor_product(v, alpha))
 print(v @ alpha)
 print(tensor_product(T, v).as_matrix(row_axes=(0, 1), col_axes=(2,)))
 print(tensor_product(T, v).display_matrix(row_axes=(0, 1), col_axes=(2,)))
-print(tensor_contract(T, Vector.from_data([2, 4])))
+print(
+    tensor_contract(
+        T,
+        Vector.from_data([2, 4]),
+        contravariant_axis=("right", 0),
+        covariant_axis=("left", 1),
+    )
+)
+print(
+    tensor_contract(
+        T,
+        Covector.from_data([2, 4]),
+        contravariant_axis=("left", 0),
+        covariant_axis=("right", 0),
+    )
+)
 ```
 
 In this example, `alpha(v)` is displayed as a real number whenever its
@@ -97,10 +112,12 @@ Tensor operations are available both in Python's natural form, such as
 For display and exploration, `Tensor.as_matrix(row_axes=..., col_axes=...)`
 lets you regroup the tensor indices into a 2D matrix view, and
 `Tensor.display_matrix(...)` prepares that view for cleaner notebook output.
-For contractions, `Tensor.contract(other)` and `tensor_contract(A, B)` contract
-the last covariant index of the left tensor with the first contravariant index
-of the right tensor. Evaluation remains a separate notion, represented for
-instance by `Covector.evaluate(vector)` and `alpha(vector)`.
+For contractions, use
+`tensor_contract(A, B, contravariant_axis=(side, axis), covariant_axis=(side, axis))`.
+The axis positions follow the tensor-type convention: contravariant axes come
+first and covariant axes after them, and `side` is either `"left"` or `"right"`.
+Evaluation remains a separate notion, represented for instance by
+`Covector.evaluate(vector)` and `alpha(vector)`.
 
 ## Design Principles
 
